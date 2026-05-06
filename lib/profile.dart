@@ -7,10 +7,13 @@ class SpendWiseProfileScreen extends StatelessWidget {
   Future<void> _handleLogout(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
+      // Explicitly navigate to login and clear the entire navigation stack
+      if (context.mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      }
     } catch (e) {
       debugPrint("Logout Error: $e");
     }
-    // StreamBuilder in main.dart will automatically redirect to login
   }
 
   @override
@@ -30,20 +33,24 @@ class SpendWiseProfileScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: primaryDarkGreen,
-                          borderRadius: BorderRadius.circular(4),
+                  // ✅ SpendWise logo is now a tappable back button
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: primaryDarkGreen,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Icon(Icons.account_balance, color: Colors.white, size: 18),
                         ),
-                        child: const Icon(Icons.account_balance, color: Colors.white, size: 18),
-                      ),
-                      const SizedBox(width: 8),
-                      Text('SpendWise',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: primaryDarkGreen, fontSize: 18)),
-                    ],
+                        const SizedBox(width: 8),
+                        Text('SpendWise',
+                            style: TextStyle(fontWeight: FontWeight.bold, color: primaryDarkGreen, fontSize: 18)),
+                      ],
+                    ),
                   ),
                   const Icon(Icons.settings_outlined),
                 ],
@@ -103,6 +110,7 @@ class SpendWiseProfileScreen extends StatelessWidget {
 
               const SizedBox(height: 30),
 
+              // ✅ Logout now explicitly navigates to /login and clears the stack
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
