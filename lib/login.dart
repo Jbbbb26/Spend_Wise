@@ -39,7 +39,7 @@ class _SpendWiseLoginScreenState extends State<SpendWiseLoginScreen> {
       );
       
       // Navigate to Profile/Dashboard on success
-      if (mounted) Navigator.pushReplacementNamed(context, '/dashboard');
+    Navigator.pushReplacementNamed(context, '/overview');
     } on FirebaseAuthException catch (e) {
       _showError(e.message ?? "Login failed");
     } finally {
@@ -50,31 +50,25 @@ class _SpendWiseLoginScreenState extends State<SpendWiseLoginScreen> {
   Future<void> _loginWithGoogle() async {
   setState(() => _isLoading = true);
   try {
-    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+    // Use signInWithPopup for Flutter Web
+    final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+    googleProvider.addScope('email');
+    googleProvider.addScope('profile');
 
-    if (googleUser == null) {
-      if (mounted) setState(() => _isLoading = false);
-      return; // User closed the popup, stop here without showing an error
+    final UserCredential userCredential = 
+        await FirebaseAuth.instance.signInWithPopup(googleProvider);
+
+    if (userCredential.user != null && mounted) {
+      Navigator.pushReplacementNamed(context, '/dashboard');
     }
 
-    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-
-    await FirebaseAuth.instance.signInWithCredential(credential);
-
- 
   } catch (e) {
+    debugPrint("Google Sign-In Error: $e"); // Check Debug Console for real error
     if (mounted) {
-      _showError("Google Sign-In failed. Check your connection or SHA-1.");
+      _showError("Google Sign-In failed: ${e.toString()}");
     }
   } finally {
-    if (mounted) {
-      setState(() => _isLoading = false);
-    }
+    if (mounted) setState(() => _isLoading = false);
   }
 }
 

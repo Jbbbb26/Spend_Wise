@@ -1,44 +1,26 @@
 {
   "project_info": {
-    "project_number": "72597800908",
-    "project_id": "spendwise-ea975",
-    "storage_bucket": "spendwise-ea975.firebasestorage.app"
+    "project_number": "874356122555",
+    "project_id": "spendwise-769fa",
+    "storage_bucket": "spendwise-769fa.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:72597800908:android:bbef89dbb9929c6b05bf69",
+        "mobilesdk_app_id": "1:874356122555:android:721461d927acfc73ac9a9e",
         "android_client_info": {
           "package_name": "com.ambtion.spendwise"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "72597800908-0srae20prpk431ieu52avo67cndkp0er.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.ambtion.spendwise",
-            "certificate_hash": "a76c7495d9d4f6b057779ac995505e0017655e64"
-          }
-        },
-        {
-          "client_id": "72597800908-afs19sjmr9bkv1ngeid6d5aac3867ji2.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCYQVfW80XcDk2QuUXWtYjm3nTCdmJFRBs"
+          "current_key": "AIzaSyD0NVBURO3EQtSafZ1pQinQHDPdhhZc238"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "72597800908-afs19sjmr9bkv1ngeid6d5aac3867ji2.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

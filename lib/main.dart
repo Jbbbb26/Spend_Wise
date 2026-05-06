@@ -3,13 +3,15 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart'; 
 import 'package:spendwise_trakcer/login.dart'; 
 import 'package:spendwise_trakcer/profile.dart'; 
-// Add the import for your new overview screen file here:
 import 'package:spendwise_trakcer/overview_screen.dart'; 
+import 'firebase_options.dart'; // Make sure this import is here
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Uncomment/add these lines:
   await Firebase.initializeApp(
-    // options: DefaultFirebaseOptions.currentPlatform,  
+    options: DefaultFirebaseOptions.currentPlatform,
   );
 
   runApp(const SpendWiseApp());
