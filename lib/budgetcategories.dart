@@ -3,7 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SpendWiseCategoriesScreen extends StatefulWidget {
-  final String activeTab; // 'Expenses' or 'Income'
+  /// 'Expenses' or 'Income' — locked, no in-screen switching
+  final String activeTab;
   const SpendWiseCategoriesScreen({super.key, this.activeTab = 'Expenses'});
 
   @override
@@ -17,12 +18,14 @@ class _SpendWiseCategoriesScreenState
   final Color lightGreenAccent = const Color(0xFFE9F0EC);
   final Color backgroundGray = const Color(0xFFF4F6F8);
 
-  late String _activeTab;
+  // ── Tab is FIXED to what the parent passed — no in-screen toggle ───────────
+  late final String _activeTab;
+
   String _selectedCategory = '';
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
-  // ── Hardcoded categories ────────────────────────────────────────────────────
+  // ── Hardcoded expense categories ────────────────────────────────────────────
   final List<Map<String, dynamic>> _expenseCategories = [
     {'title': 'Housing', 'subtitle': 'RENT & MORTGAGE', 'iconCode': 0xe318},
     {'title': 'Transport', 'subtitle': 'FUEL & TRANSIT', 'iconCode': 0xe531},
@@ -42,6 +45,7 @@ class _SpendWiseCategoriesScreenState
     {'title': 'Education', 'subtitle': 'LEARNING & GROWTH', 'iconCode': 0xe80c},
   ];
 
+  // ── Hardcoded income categories ─────────────────────────────────────────────
   final List<Map<String, dynamic>> _incomeCategories = [
     {'title': 'Salary', 'subtitle': 'MONTHLY PAY', 'iconCode': 0xe8a5},
     {'title': 'Freelance', 'subtitle': 'CONTRACT WORK', 'iconCode': 0xe156},
@@ -72,6 +76,7 @@ class _SpendWiseCategoriesScreenState
   @override
   void initState() {
     super.initState();
+    // ✅ Lock the tab once — never changes inside this screen
     _activeTab = widget.activeTab;
   }
 
@@ -81,9 +86,7 @@ class _SpendWiseCategoriesScreenState
     super.dispose();
   }
 
-  // ── Firestore helpers ────────────────────────────────────────────────────────
-
-  /// Returns the Firestore stream of custom categories for the current user + tab
+  // ── Firestore: stream only the custom categories for this locked tab ────────
   Stream<QuerySnapshot> _customCategoriesStream() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return const Stream.empty();
@@ -91,11 +94,14 @@ class _SpendWiseCategoriesScreenState
         .collection('users')
         .doc(user.uid)
         .collection('custom_categories')
-        .where('type', isEqualTo: _activeTab == 'Expenses' ? 'expense' : 'income')
+        .where(
+          'type',
+          isEqualTo: _activeTab == 'Expenses' ? 'expense' : 'income',
+        )
         .snapshots();
   }
 
-  /// Saves a new custom category to Firestore
+  // ── Firestore: save custom category for the locked tab ─────────────────────
   Future<void> _saveCustomCategory(
       String title, String subtitle, int iconCode) async {
     final user = FirebaseAuth.instance.currentUser;
@@ -113,7 +119,7 @@ class _SpendWiseCategoriesScreenState
     });
   }
 
-  // ── Add Category bottom sheet ────────────────────────────────────────────────
+  // ── Add-category bottom sheet ───────────────────────────────────────────────
   void _openAddCategorySheet() {
     final TextEditingController nameCtrl = TextEditingController();
     final TextEditingController subtitleCtrl = TextEditingController();
@@ -140,7 +146,7 @@ class _SpendWiseCategoriesScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Sheet header
+                    // Header
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -158,6 +164,7 @@ class _SpendWiseCategoriesScreenState
                       ],
                     ),
                     const SizedBox(height: 4),
+                    // ✅ Shows which tab this custom category will be saved under
                     Text(
                       'Adding to: $_activeTab',
                       style: TextStyle(
@@ -177,7 +184,8 @@ class _SpendWiseCategoriesScreenState
                       textCapitalization: TextCapitalization.words,
                       decoration: InputDecoration(
                         hintText: 'e.g. Side hustle',
-                        hintStyle: TextStyle(color: Colors.grey.shade400),
+                        hintStyle:
+                            TextStyle(color: Colors.grey.shade400),
                         filled: true,
                         fillColor: const Color(0xFFF4F6F8),
                         border: OutlineInputBorder(
@@ -202,7 +210,8 @@ class _SpendWiseCategoriesScreenState
                       textCapitalization: TextCapitalization.characters,
                       decoration: InputDecoration(
                         hintText: 'e.g. EXTRA INCOME',
-                        hintStyle: TextStyle(color: Colors.grey.shade400),
+                        hintStyle:
+                            TextStyle(color: Colors.grey.shade400),
                         filled: true,
                         fillColor: const Color(0xFFF4F6F8),
                         border: OutlineInputBorder(
@@ -276,13 +285,15 @@ class _SpendWiseCategoriesScreenState
                           if (name.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                  content: Text('Please enter a category name')),
+                                  content:
+                                      Text('Please enter a category name')),
                             );
                             return;
                           }
-                          final subtitle = subtitleCtrl.text.trim().isEmpty
-                              ? name.toUpperCase()
-                              : subtitleCtrl.text.trim().toUpperCase();
+                          final subtitle =
+                              subtitleCtrl.text.trim().isEmpty
+                                  ? name.toUpperCase()
+                                  : subtitleCtrl.text.trim().toUpperCase();
 
                           await _saveCustomCategory(
                               name, subtitle, selectedIconCode);
@@ -296,11 +307,13 @@ class _SpendWiseCategoriesScreenState
                           backgroundColor: primaryDarkGreen,
                           foregroundColor: Colors.white,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
                           textStyle: const TextStyle(
-                              fontSize: 14, fontWeight: FontWeight.bold),
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold),
                         ),
                         child: const Text('Save Category'),
                       ),
@@ -315,7 +328,7 @@ class _SpendWiseCategoriesScreenState
     );
   }
 
-  // ── Confirm selection (searches hardcoded + custom list) ────────────────────
+  // ── Confirm and pop with result ─────────────────────────────────────────────
   void _confirmSelection(List<Map<String, dynamic>> allCategories) {
     if (_selectedCategory.isEmpty) return;
     final cat = allCategories.firstWhere(
@@ -331,13 +344,18 @@ class _SpendWiseCategoriesScreenState
   // ── BUILD ───────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    // ✅ Hardcoded list is fixed to the locked tab — no runtime switching
     final hardcoded =
         _activeTab == 'Expenses' ? _expenseCategories : _incomeCategories;
+
+    // Accent color matches the parent screen's tab color
+    final Color accentColor =
+        _activeTab == 'Expenses' ? Colors.red.shade400 : primaryDarkGreen;
 
     return StreamBuilder<QuerySnapshot>(
       stream: _customCategoriesStream(),
       builder: (context, customSnap) {
-        // Convert Firestore docs to the same Map format
+        // Firestore custom categories (already filtered by type in the query)
         final List<Map<String, dynamic>> customCategories =
             (customSnap.data?.docs ?? []).map((doc) {
           final d = doc.data() as Map<String, dynamic>;
@@ -349,8 +367,9 @@ class _SpendWiseCategoriesScreenState
           };
         }).toList();
 
-        // Merge: hardcoded first, then custom (deduplicated by title)
-        final hardcodedTitles = hardcoded.map((c) => c['title']).toSet();
+        // Merge hardcoded + custom, deduplicating by title
+        final hardcodedTitles =
+            hardcoded.map((c) => c['title']).toSet();
         final uniqueCustom = customCategories
             .where((c) => !hardcodedTitles.contains(c['title']))
             .toList();
@@ -359,7 +378,7 @@ class _SpendWiseCategoriesScreenState
           ...uniqueCustom,
         ];
 
-        // Apply search filter
+        // Search filter
         final filtered = _searchQuery.isEmpty
             ? allCategories
             : allCategories
@@ -380,7 +399,7 @@ class _SpendWiseCategoriesScreenState
                 constraints: const BoxConstraints(maxWidth: 460),
                 child: Column(
                   children: [
-                    // ── Scrollable body ─────────────────────────────────
+                    // ── Scrollable content ──────────────────────────────
                     Expanded(
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.symmetric(
@@ -388,7 +407,7 @@ class _SpendWiseCategoriesScreenState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // App bar row
+                            // App bar
                             Row(
                               children: [
                                 GestureDetector(
@@ -397,25 +416,35 @@ class _SpendWiseCategoriesScreenState
                                       color: Colors.black87),
                                 ),
                                 const SizedBox(width: 16),
-                                Text('Select Category',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w900,
-                                        color: primaryDarkGreen)),
+                                Text(
+                                  'Select Category',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
+                                      color: primaryDarkGreen),
+                                ),
                                 const Spacer(),
-                                Icon(Icons.search,
-                                    color: Colors.grey.shade600, size: 22),
                               ],
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 16),
 
-                            // Expenses / Income toggle
-                            Row(
-                              children: [
-                                _buildToggle('Expenses'),
-                                const SizedBox(width: 10),
-                                _buildToggle('Income'),
-                              ],
+                            // ✅ Read-only tab badge — shows which type is active,
+                            //    but cannot be tapped to switch.
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 7),
+                              decoration: BoxDecoration(
+                                color: accentColor,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                _activeTab.toUpperCase(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ),
                             const SizedBox(height: 20),
 
@@ -443,15 +472,16 @@ class _SpendWiseCategoriesScreenState
                                     color: Colors.grey.shade400,
                                     fontSize: 13),
                                 prefixIcon: Icon(Icons.search,
-                                    color: Colors.grey.shade400, size: 18),
+                                    color: Colors.grey.shade400,
+                                    size: 18),
                                 filled: true,
                                 fillColor: Colors.white,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: BorderSide.none,
                                 ),
-                                contentPadding:
-                                    const EdgeInsets.symmetric(vertical: 12),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 12),
                               ),
                             ),
                             const SizedBox(height: 20),
@@ -459,7 +489,8 @@ class _SpendWiseCategoriesScreenState
                             // Category grid
                             GridView.builder(
                               shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
+                              physics:
+                                  const NeverScrollableScrollPhysics(),
                               gridDelegate:
                                   const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 3,
@@ -474,12 +505,14 @@ class _SpendWiseCategoriesScreenState
                                     _selectedCategory == cat['title'];
                                 final isCustom =
                                     cat['isCustom'] == true;
+
                                 return GestureDetector(
                                   onTap: () => setState(() =>
-                                      _selectedCategory = cat['title']),
+                                      _selectedCategory =
+                                          cat['title']),
                                   child: AnimatedContainer(
-                                    duration:
-                                        const Duration(milliseconds: 150),
+                                    duration: const Duration(
+                                        milliseconds: 150),
                                     padding: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
@@ -487,7 +520,7 @@ class _SpendWiseCategoriesScreenState
                                           BorderRadius.circular(12),
                                       border: Border.all(
                                         color: isSelected
-                                            ? primaryDarkGreen
+                                            ? accentColor
                                             : Colors.transparent,
                                         width: 2,
                                       ),
@@ -512,7 +545,8 @@ class _SpendWiseCategoriesScreenState
                                                   const EdgeInsets.all(8),
                                               decoration: BoxDecoration(
                                                 color: isSelected
-                                                    ? lightGreenAccent
+                                                    ? accentColor
+                                                        .withOpacity(0.15)
                                                     : const Color(
                                                         0xFFF0F2F5),
                                                 borderRadius:
@@ -520,14 +554,17 @@ class _SpendWiseCategoriesScreenState
                                                         8),
                                               ),
                                               child: Icon(
-                                                IconData(cat['iconCode'],
+                                                IconData(
+                                                    cat['iconCode'],
                                                     fontFamily:
                                                         'MaterialIcons'),
-                                                color: primaryDarkGreen,
+                                                color: isSelected
+                                                    ? accentColor
+                                                    : primaryDarkGreen,
                                                 size: 26,
                                               ),
                                             ),
-                                            // Custom badge
+                                            // Custom badge dot
                                             if (isCustom)
                                               Positioned(
                                                 top: -4,
@@ -535,11 +572,15 @@ class _SpendWiseCategoriesScreenState
                                                 child: Container(
                                                   width: 10,
                                                   height: 10,
-                                                  decoration: BoxDecoration(
-                                                    color: primaryDarkGreen,
-                                                    shape: BoxShape.circle,
+                                                  decoration:
+                                                      BoxDecoration(
+                                                    color:
+                                                        primaryDarkGreen,
+                                                    shape:
+                                                        BoxShape.circle,
                                                     border: Border.all(
-                                                        color: Colors.white,
+                                                        color:
+                                                            Colors.white,
                                                         width: 1.5),
                                                   ),
                                                 ),
@@ -551,11 +592,14 @@ class _SpendWiseCategoriesScreenState
                                           cat['title'],
                                           textAlign: TextAlign.center,
                                           maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
+                                          overflow:
+                                              TextOverflow.ellipsis,
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.bold,
-                                            color: primaryDarkGreen,
+                                            color: isSelected
+                                                ? accentColor
+                                                : primaryDarkGreen,
                                           ),
                                         ),
                                         const SizedBox(height: 2),
@@ -563,7 +607,8 @@ class _SpendWiseCategoriesScreenState
                                           cat['subtitle'],
                                           textAlign: TextAlign.center,
                                           maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
+                                          overflow:
+                                              TextOverflow.ellipsis,
                                           style: TextStyle(
                                             fontSize: 8,
                                             color: Colors.grey.shade500,
@@ -587,7 +632,8 @@ class _SpendWiseCategoriesScreenState
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
                                 children: [
                                   const Text("Can't find it?",
                                       style: TextStyle(
@@ -595,7 +641,7 @@ class _SpendWiseCategoriesScreenState
                                           fontSize: 15)),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'Create a custom category tailored to your spending habits.',
+                                    'Create a custom category tailored to your $_activeTab.',
                                     style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey.shade600),
@@ -604,21 +650,24 @@ class _SpendWiseCategoriesScreenState
                                   SizedBox(
                                     width: double.infinity,
                                     child: ElevatedButton(
-                                      // ← now calls the sheet
                                       onPressed: _openAddCategorySheet,
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: primaryDarkGreen,
+                                        backgroundColor: accentColor,
                                         foregroundColor: Colors.white,
                                         elevation: 0,
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 12),
+                                        padding:
+                                            const EdgeInsets.symmetric(
+                                                vertical: 12),
                                         shape: RoundedRectangleBorder(
                                             borderRadius:
-                                                BorderRadius.circular(8)),
+                                                BorderRadius.circular(
+                                                    8)),
                                       ),
-                                      child: const Text('Add New Category',
+                                      child: const Text(
+                                          'Add New Category',
                                           style: TextStyle(
-                                              fontWeight: FontWeight.bold,
+                                              fontWeight:
+                                                  FontWeight.bold,
                                               fontSize: 13)),
                                     ),
                                   ),
@@ -631,19 +680,22 @@ class _SpendWiseCategoriesScreenState
                       ),
                     ),
 
-                    // ── Bottom action buttons ──────────────────────────────
+                    // ── Bottom buttons ──────────────────────────────────
                     Container(
                       color: backgroundGray,
-                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                      padding:
+                          const EdgeInsets.fromLTRB(24, 8, 24, 16),
                       child: Row(
                         children: [
                           Expanded(
                             child: SizedBox(
                               height: 48,
                               child: ElevatedButton(
-                                onPressed: () => Navigator.pop(context),
+                                onPressed: () =>
+                                    Navigator.pop(context),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.grey.shade200,
+                                  backgroundColor:
+                                      Colors.grey.shade200,
                                   foregroundColor: Colors.black87,
                                   elevation: 0,
                                   shape: RoundedRectangleBorder(
@@ -664,10 +716,10 @@ class _SpendWiseCategoriesScreenState
                               child: ElevatedButton(
                                 onPressed: _selectedCategory.isEmpty
                                     ? null
-                                    : () =>
-                                        _confirmSelection(allCategories),
+                                    : () => _confirmSelection(
+                                        allCategories),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: primaryDarkGreen,
+                                  backgroundColor: accentColor,
                                   foregroundColor: Colors.white,
                                   disabledBackgroundColor:
                                       Colors.grey.shade300,
@@ -693,30 +745,6 @@ class _SpendWiseCategoriesScreenState
           ),
         );
       },
-    );
-  }
-
-  Widget _buildToggle(String label) {
-    final isActive = _activeTab == label;
-    return GestureDetector(
-      onTap: () => setState(() {
-        _activeTab = label;
-        _selectedCategory = '';
-      }),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? primaryDarkGreen : Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-              color: isActive ? primaryDarkGreen : Colors.grey.shade300),
-        ),
-        child: Text(label,
-            style: TextStyle(
-                color: isActive ? Colors.white : Colors.grey.shade600,
-                fontWeight: FontWeight.bold,
-                fontSize: 13)),
-      ),
     );
   }
 }
