@@ -10,7 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  csv: ^6.0.0
+  share_plus: ^10.0.0
 
   cupertino_icons: ^1.0.8
   
